@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+*.spec
+__init__
+
+.venv1
+venv1/
+
+.idea
+.idea/
