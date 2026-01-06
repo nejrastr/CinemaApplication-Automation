@@ -1,7 +1,12 @@
+import json
+
 import pytest
 from playwright.sync_api import sync_playwright
-
-
+import os
+import allure
+from api_client import ApiClient
+from tasks.api_tasks import ApiTasks
+from utils.db_connector import DBConnector
 
 
 @pytest.fixture(scope="session", params=["chromium"])
@@ -25,4 +30,53 @@ def page(context):
     page = context.new_page()
     yield page
     page.close()
+
+
+
+@pytest.fixture(scope="session")
+def user_data():
+    data_folder = os.path.join(os.path.dirname(__file__), "./data")
+    data_file = os.path.join(data_folder, "registrated_user.json")
+    with open(data_file) as f:
+        user_data = json.load(f)
+    return user_data
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome.get_result()
+    if rep.when == "call" and rep.failed:
+        page = item.funcargs.get("page")
+        if page:
+            allure.attach(
+                page.screenshot(full_page=True),
+                name="FAILURE_SCREENSHOT",
+                attachment_type=allure.attachment_type.PNG
+            )
+            allure.attach(page.content(), name="HTML_Source", attachment_type=allure.attachment_type.HTML)
+
+@pytest.fixture(scope="session")
+def api_client():
+    return ApiClient()
+@pytest.fixture(scope="session")
+def api_tasks(api_client):
+    return ApiTasks()
+
+@pytest.fixture(scope="session")
+def db_connection():
+    from utils.db_connector import DBConnector
+    conn = DBConnector().get_connection()
+    yield conn
+    conn.close()
+
+@pytest.fixture(scope="function")
+def api(db_connection):
+    from tasks.api_tasks import ApiTasks
+    return ApiTasks(db_connection)
+
+
+
+
+
 

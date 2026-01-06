@@ -8,6 +8,7 @@ __init__
 
 .venv1
 venv1/
-
 .idea
 .idea/
+
+.env
