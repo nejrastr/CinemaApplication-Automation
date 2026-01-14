@@ -1,12 +1,9 @@
 import json
-
 import pytest
 from playwright.sync_api import sync_playwright
 import os
 import allure
-from api_client import ApiClient
-from tasks.api_tasks import ApiTasks
-from utils.db_connector import DBConnector
+
 
 
 @pytest.fixture(scope="session", params=["chromium"])
@@ -32,7 +29,6 @@ def page(context):
     page.close()
 
 
-
 @pytest.fixture(scope="session")
 def user_data():
     data_folder = os.path.join(os.path.dirname(__file__), "./data")
@@ -56,12 +52,6 @@ def pytest_runtest_makereport(item, call):
             )
             allure.attach(page.content(), name="HTML_Source", attachment_type=allure.attachment_type.HTML)
 
-@pytest.fixture(scope="session")
-def api_client():
-    return ApiClient()
-@pytest.fixture(scope="session")
-def api_tasks(api_client):
-    return ApiTasks()
 
 @pytest.fixture(scope="session")
 def db_connection():
@@ -69,14 +59,3 @@ def db_connection():
     conn = DBConnector().get_connection()
     yield conn
     conn.close()
-
-@pytest.fixture(scope="function")
-def api(db_connection):
-    from tasks.api_tasks import ApiTasks
-    return ApiTasks(db_connection)
-
-
-
-
-
-

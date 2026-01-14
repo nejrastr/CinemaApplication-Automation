@@ -2,7 +2,7 @@ import requests
 
 from config.settings import BASE_API_URL
 class ApiClient:
-    def __init__(self):
+    def init_client(self):
         self.base_api_url = BASE_API_URL
         self.session = requests.Session()
         self.session.verify = False

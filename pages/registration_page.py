@@ -12,18 +12,11 @@ class RegistrationPage(BasePage):
         self.sign_up_button = page.locator("//button[normalize-space()='Sign Up']")
         self.code_inputs = page.locator("input[autocomplete='one-time-code']")
         self.continue_button = page.get_by_role("button", name="Continue")
-        self.completed_verification = page.locator(
-            "div.fixed.top-16.right-0 h1:has-text(\"You're all set!\")"
-        )
+
         self.back_button = page.locator(
             "div.fixed.top-16.right-0 button:has(svg[data-icon='arrow-left'])"
         )
 
-
-
-    def verify_registration_form(self):
-        self.completed_verification.wait_for(state="visible", timeout=5000)
-        assert self.completed_verification.is_visible()
 
     def click_back(self):
         self.back_button.wait_for(state="visible", timeout=5000)

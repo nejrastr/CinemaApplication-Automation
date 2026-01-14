@@ -2,7 +2,6 @@ from pages.base_page import BasePage
 from playwright.sync_api import Page
 import re
 
-
 class CurrentlyShowingMoviesPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
@@ -13,7 +12,6 @@ class CurrentlyShowingMoviesPage(BasePage):
         self.genres_dropdown = page.locator("div.border:has(span:has-text('All genres'))")
         self.projections_dropdown = page.locator("div.border:has(span:has-text('All projections'))")
         self.cards = page.locator('div.grid.grid-cols-1.md\\:grid-cols-12')
-
 
     def fill_search_bar(self, search_term):
         self.fill(self.search_bar, search_term)
@@ -41,12 +39,3 @@ class CurrentlyShowingMoviesPage(BasePage):
     def select_date_chip(self, month, day, weekday):
       date_button = self.page.locator("button").filter(has_text=re.compile(f"{month}\\s*{day}\\s*{weekday}", re.IGNORECASE))
       date_button.click()
-
-
-
-
-
-
-
-
-
