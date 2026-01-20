@@ -4,13 +4,15 @@ import time
 import allure
 from playwright.sync_api import expect
 from utils.email_util import EmailHelper
-from config.settings import BASE_URL
 from pages.navbar import Navbar
 from pages.registration_page import RegistrationPage
 from pages.sign_in_page import SignInPage
 from pages.upcoming_movies_page import UpcomingMoviesPage
 from pages.currently_showing_page import CurrentlyShowingMoviesPage
 from utils.logger import log_info
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Tasks:
@@ -22,7 +24,7 @@ class Tasks:
         self.upcoming_movies_page = UpcomingMoviesPage(page)
         self.current_showing_page = CurrentlyShowingMoviesPage(page)
         self.navbar = Navbar(page)
-        self.base_url = BASE_URL
+        self.base_url = os.getenv("BASE_URL")
         self.app_password = os.getenv("GMAIL_APP_PASSWORD")
 
     @allure.step("Register and Verify via Gmail")

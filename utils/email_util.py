@@ -1,15 +1,19 @@
 import imaplib
 import email
+import os
 import time
 import re
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class EmailHelper:
     @staticmethod
     def get_verification_code(target_email, app_password, timeout=120):
-        host = "imap.gmail.com"
-        user = "strsevicnejra@gmail.com"
+        host = os.getenv("HOST")
+        user = os.getenv("TARGET_USER")
 
         today = datetime.now().strftime("%d-%b-%Y")
         start_time = time.time()

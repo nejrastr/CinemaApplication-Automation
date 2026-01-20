@@ -10,7 +10,7 @@ import allure
 def browser(request):
     browser_name = request.param
     with sync_playwright() as playwright:
-        browser = getattr(playwright, browser_name).launch(headless=False)
+        browser = getattr(playwright, browser_name).launch(headless=True)
         yield browser
         browser.close()
 

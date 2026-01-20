@@ -1,9 +1,14 @@
-import requests
+import os
 
-from config.settings import BASE_API_URL
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 class ApiClient:
     def init_client(self):
-        self.base_api_url = BASE_API_URL
+        self.base_api_url = os.getenv("BASE_API_URL")
         self.session = requests.Session()
         self.session.verify = False
         self.session.headers.update({
