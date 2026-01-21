@@ -3,6 +3,8 @@ import pytest
 from playwright.sync_api import sync_playwright
 import os
 import allure
+from data.data import get_api_filters, get_movie_projections, get_upcoming_movies_filters, get_currently_showing_filters
+
 
 
 
@@ -10,7 +12,7 @@ import allure
 def browser(request):
     browser_name = request.param
     with sync_playwright() as playwright:
-        browser = getattr(playwright, browser_name).launch(headless=True)
+        browser = getattr(playwright, browser_name).launch(headless=False)
         yield browser
         browser.close()
 
@@ -59,3 +61,17 @@ def db_connection():
     conn = DBConnector().get_connection()
     yield conn
     conn.close()
+
+
+@pytest.fixture
+def api_filters_data(db_connection):
+    return get_api_filters(db_connection)
+@pytest.fixture
+def api_movie_projections_data(db_connection):
+    return get_movie_projections(db_connection)
+@pytest.fixture
+def ui_filters_data(db_connection):
+    return {
+        "currently_showing": get_currently_showing_filters(db_connection),
+        "upcoming_movies": get_upcoming_movies_filters(db_connection),
+    }

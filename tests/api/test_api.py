@@ -1,5 +1,5 @@
 import allure
-from data.test_data import API_FILTERS, MOVIE_PROJECTION_FILTERS, TEST_USER
+from data.test_data import TEST_USER
 from tasks.api_tasks import ApiTasks
 
 @allure.epic("Cinema Application")
@@ -7,17 +7,17 @@ from tasks.api_tasks import ApiTasks
 class TestApi(ApiTasks):
     @allure.story("Full end-to-end movie discovery and authentication flow")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_api_flow(self):
+    def test_api_flow(self, api_filters_data, api_movie_projections_data):
         with allure.step("Step 1: Retrieve currently showing movies"):
-            self.get_currently_showing_movies(**API_FILTERS["filters"])
+            self.get_currently_showing_movies(**api_filters_data["current"])
         with allure.step("Step 2: Explore movie metadata (Cities, Venues, Genres)"):
             self.get_cities()
-            self.get_venues_by_city(API_FILTERS["filters"]["cityId"])
+            self.get_venues_by_city(api_filters_data["filters"]["cityId"])
             self.get_genres()
         with allure.step("Step 3: Filter and verify upcoming movies"):
-            self.get_upcoming_movies(**API_FILTERS["filters"])
+            self.get_upcoming_movies(**api_filters_data["filters"])
         with allure.step("Step 4: Verify specific movie projections by ID and Date"):
-            self.get_movies_projections_by_movieId(MOVIE_PROJECTION_FILTERS["movie_id"], MOVIE_PROJECTION_FILTERS["projection_date"])
+            self.get_movies_projections_by_movieId(**api_movie_projections_data)
         with allure.step("Step 5: Register and Verify New User via Gmail"):
             user_payload = TEST_USER.copy()
             email_used = self.register_and_verify_user(user_payload)
