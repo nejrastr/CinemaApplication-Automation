@@ -70,12 +70,18 @@ class ApiTasks(ApiClient):
         log_info(f"Logging in user: {email}")
         payload = {"email": email, "password": password}
         res = self.post("auth/login", json=payload)
+        data = res.json()
 
         self._attach_details("Login Response", res.json())
         assert res.status_code == 200
         assert "access_token" in res.cookies or "access_token" in res.json()
+        token = res.cookies.get("access_token")
+        if token:
+            self.session.headers.update({"Authorization": f"Bearer {token}"})
+            log_info("Login successful and Bearer token applied to session.")
+        else:
+            log_info("Login successful, but no token found in JSON body.")
 
-        log_info("Login successful and token received.")
         return res
 
     @allure.step("Logout")
@@ -168,3 +174,79 @@ class ApiTasks(ApiClient):
         assert api_times == db_times
         log_info(f"Projections match for movie_id {movie_id}.")
         return res
+
+    @allure.step("Movie Details")
+    def get_movie_details(self, api_test_data):
+        log_info(f"Fetching movie details ")
+        movie_id = api_test_data["id"]
+        res = self.get(f"movies/{movie_id}")
+        data = res.json()
+        assert res.status_code == 200
+        self.verify_movie_data(data, api_test_data)
+
+
+    @allure.step("Get booking session")
+    def get_booking_session(self, projection_id):
+        log_info(f"Fetching booking session for projection_id: {projection_id}")
+        res = self.post("booking", params={'projectionId': projection_id})
+        data = res.json()
+        assert res.status_code == 200
+        assert data["success"]
+        return res
+
+    def verify_movie_data(self, api_data, db_data):
+        log_info("Normalizing API data and comparing with DB records...")
+        api_writers = [f"{w['firstName']} {w['lastName']}" for w in api_data.get('writers', [])]
+        api_cast = []
+        for actor in api_data.get('cast', []):
+            api_cast.append({
+                "name": f"{actor['firstName']} {actor['lastName']}",
+                "character": actor['characterFullName']
+            })
+        assert api_data['id'] == db_data['id']
+        assert api_data['title'] == db_data['title']
+        assert api_data['language'] == db_data['language']
+        assert api_data['pgRating'] == db_data['pgRating']
+        assert api_data['durationInMinutes'] == db_data['duration']
+        assert api_data['synopsis'] == db_data['synopsis']
+        assert api_data['directorFullName'] == db_data['director']
+        assert api_data['projectionStartDate'] == db_data['projectionStartDate']
+        assert api_data['projectionEndDate'] == db_data['projectionEndDate']
+
+        def custom_sort(x):
+            return x['name'], x['character']
+
+        assert sorted(api_cast, key=custom_sort) == sorted(db_data['cast'], key=custom_sort), \
+            f"Cast mismatch!\nAPI: {sorted(api_cast, key=custom_sort)}\nDB: {sorted(db_data['cast'], key=custom_sort)}"
+        assert sorted(api_writers) == sorted(db_data['writers']), \
+            f"Writers mismatch! API: {api_writers} vs DB: {db_data['writers']}"
+
+        def sort_key(x): return x['name']
+
+        assert sorted(api_cast, key=sort_key) == sorted(db_data['cast'], key=sort_key), \
+            f"Cast mismatch!\nAPI: {sorted(api_cast, key=sort_key)}\nDB: {sorted(db_data['cast'], key=sort_key)}"
+
+        log_info("Data verification successful: API and DB match perfectly.")
+
+    def get_movie_ticket_reservation(self, api_test_data):
+        booking_response = self.get_booking_session(api_test_data["movie_projection_id"])
+        booking_data = booking_response.json()
+        booking_id = booking_data.get("bookingId")
+        status = self.repo.get_reservation_status(booking_id)
+        assert status['status'] == "locked"
+        print(f"Current Auth Header: {self.session.headers.get('Authorization')}")
+        reserved_ticket_response = self.post(f"booking/reserve/{booking_id}")
+        assert reserved_ticket_response.status_code == 200
+        time.sleep(2)
+        status_2 = self.repo.get_reservation_status(booking_id)
+        assert status_2['status'] == "reserved"
+
+    def buy_movie_tickets(self, api_test_data):
+        booking_response = self.get_booking_session(api_test_data["movie_projection_id"])
+        booking_data = booking_response.json()
+        booking_id = booking_data.get("bookingId")
+        status = self.repo.get_reservation_status(booking_id)
+        assert status['status'] == "locked"
+        print(f"Current Auth Header: {self.session.headers.get('Authorization')}")
+
+        ##assert that status is updated to paid

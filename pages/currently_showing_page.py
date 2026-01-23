@@ -5,13 +5,16 @@ import re
 class CurrentlyShowingMoviesPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.search_bar = page.get_by_role("textbox", name="Search Movies")
-        self.cities_dropdown = page.locator("div.border:has(span:text('All cities'))")
-        self.cinemas_dropdown = page.locator(
-            "div.border:has(span:text('All cinemas'))")
-        self.genres_dropdown = page.locator("div.border:has(span:has-text('All genres'))")
-        self.projections_dropdown = page.locator("div.border:has(span:has-text('All projections'))")
+        self.search_bar = page.locator("//input[@data-testid='search-input-field']")
+        self.cities_dropdown = page.locator("//div[@data-testid='select-trigger-all-cities']")
+        self.cinemas_dropdown = page.locator("//div[@data-testid='select-trigger-all-cinemas']")
+        self.genres_dropdown = page.locator("//div[@data-testid='select-trigger-all-genres']")
+        self.projections_dropdown = page.locator("//div[@data-testid='select-trigger-all-projections']")
         self.cards = page.locator('div.grid.grid-cols-1.md\\:grid-cols-12')
+
+    def click_movie_card(self, movie_name):
+        card = self.cards.filter(has=self.page.get_by_role("heading", name=movie_name))
+        self.click(card)
 
     def fill_search_bar(self, search_term):
         self.fill(self.search_bar, search_term)

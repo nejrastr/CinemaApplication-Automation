@@ -3,12 +3,14 @@ import re
 import time
 import allure
 from playwright.sync_api import expect
+from pages.reservation_page import ReservationPage
 from utils.email_util import EmailHelper
 from pages.navbar import Navbar
-from pages.registration_page import RegistrationPage
 from pages.sign_in_page import SignInPage
 from pages.upcoming_movies_page import UpcomingMoviesPage
+from pages.movie_details_page import MovieDetailsPage
 from pages.currently_showing_page import CurrentlyShowingMoviesPage
+from pages.registration_page import RegistrationPage
 from utils.logger import log_info
 from dotenv import load_dotenv
 
@@ -23,6 +25,8 @@ class Tasks:
         self.registration_page = RegistrationPage(page)
         self.upcoming_movies_page = UpcomingMoviesPage(page)
         self.current_showing_page = CurrentlyShowingMoviesPage(page)
+        self.movie_details_page = MovieDetailsPage(page)
+        self.reservation_page = ReservationPage(page)
         self.navbar = Navbar(page)
         self.base_url = os.getenv("BASE_URL")
         self.app_password = os.getenv("GMAIL_APP_PASSWORD")
@@ -167,3 +171,39 @@ class Tasks:
 
         log_info(f"Final URL verification for date: {date_val}")
         expect(self.page).to_have_url(re.compile(f".*date={date_val}.*"))
+
+    @allure.step("Verify Movie Details Page Content")
+    def verify_movie_details(self, title, **movie_data):
+        self.navbar.click_currently_showing_link()
+        self.current_showing_page.click_movie_card(title)
+        full_expected_data = {"title": title, **movie_data}
+        self.movie_details_page.verify_all_content(full_expected_data)
+
+    def verify_movie_ticket_reservation(self, city_name, cinema_name,movie_title, projection_time):
+        self.movie_details_page.select_city(city_name)
+        self.movie_details_page.select_cinema(cinema_name)
+        self.movie_details_page.click_first_available_time()
+        self.movie_details_page.click_reservation_button()
+        self.reservation_page.verify_session_timer()
+        self.reservation_page.verify_booking_details(movie_title, cinema_name, projection_time)
+        self.reservation_page.verify_button_state(is_enabled=False)
+        selected_seat = self.reservation_page.select_first_available_seat()
+        self.reservation_page.verify_selection(selected_seat)
+        self.reservation_page.verify_price("7")
+        self.reservation_page.complete_reservation()
+        self.reservation_page.verify_reservation_success()
+
+    def verify_movie_ticket_payment(self, city_name, cinema_name,movie_title, projection_time):
+        self.movie_details_page.select_city(city_name)
+        self.movie_details_page.select_cinema(cinema_name)
+        self.movie_details_page.click_first_available_time()
+        self.movie_details_page.click_reservation_button()
+        self.reservation_page.verify_session_timer()
+        self.reservation_page.verify_booking_details(movie_title, cinema_name, projection_time)
+        self.reservation_page.verify_button_state(is_enabled=False)
+        selected_seat = self.reservation_page.select_first_available_seat()
+        self.reservation_page.verify_selection(selected_seat)
+        self.reservation_page.verify_price("7")
+        self.reservation_page.complete_reservation()
+        ##go to payment part
+        ##add payment part with stripe
