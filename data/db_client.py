@@ -1,13 +1,13 @@
 class DBClient:
-    def __init__(self, db_connection):
-        self.db = db_connection
+    def __init__(self, connection):
+        self.connection = connection
 
-    def fetch_one(self, query):
-        with self.db.cursor() as cursor:
-            cursor.execute(query)
+    def fetch_one(self, query, params=None):
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, params)
             return cursor.fetchone()
 
-    def fetch_all(self, query):
-        with self.db.cursor() as cursor:
-            cursor.execute(query)
+    def fetch_all(self, query, params=None):
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, params)
             return cursor.fetchall()

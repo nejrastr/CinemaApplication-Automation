@@ -33,7 +33,7 @@ class MovieRepository:
                 SELECT projection_time 
                 FROM movie_projections 
                 WHERE movie_id = %s AND projection_date = %s
-                AND projection_time > CURRENT_TIME
+                
             """, (movie_id, date))
             return {str(row['projection_time']) for row in cursor.fetchall()}
 

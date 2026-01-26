@@ -40,5 +40,5 @@ class CurrentlyShowingMoviesPage(BasePage):
         self.click(page.locator(f"ul li:text('{projection}')"))
 
     def select_date_chip(self, month, day, weekday):
-      date_button = self.page.locator("button").filter(has_text=re.compile(f"{month}\\s*{day}\\s*{weekday}", re.IGNORECASE))
+      date_button = self.page.locator("button").filter(has_text=re.compile(f"{month}\\s*{day}\\s*{weekday[:3]}", re.IGNORECASE))
       date_button.click()

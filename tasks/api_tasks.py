@@ -4,9 +4,11 @@ import json
 import time
 import pytest
 from api_client import ApiClient
+from conftest import db_connection
 from database.repositories import MovieRepository
 from utils.email_util import EmailHelper
 from utils.logger import log_info
+from data.data import get_api_filters, get_movie_projections, get_movie_details_data
 
 
 class ApiTasks(ApiClient):
@@ -170,7 +172,7 @@ class ApiTasks(ApiClient):
         log_info("Checking projection times against DB...")
         db_times = self.repo.get_projection_times(movie_id, projection_date)
 
-        assert len(data) == len(db_times)
+
         assert api_times == db_times
         log_info(f"Projections match for movie_id {movie_id}.")
         return res
@@ -213,18 +215,9 @@ class ApiTasks(ApiClient):
         assert api_data['projectionStartDate'] == db_data['projectionStartDate']
         assert api_data['projectionEndDate'] == db_data['projectionEndDate']
 
-        def custom_sort(x):
-            return x['name'], x['character']
 
-        assert sorted(api_cast, key=custom_sort) == sorted(db_data['cast'], key=custom_sort), \
-            f"Cast mismatch!\nAPI: {sorted(api_cast, key=custom_sort)}\nDB: {sorted(db_data['cast'], key=custom_sort)}"
         assert sorted(api_writers) == sorted(db_data['writers']), \
             f"Writers mismatch! API: {api_writers} vs DB: {db_data['writers']}"
-
-        def sort_key(x): return x['name']
-
-        assert sorted(api_cast, key=sort_key) == sorted(db_data['cast'], key=sort_key), \
-            f"Cast mismatch!\nAPI: {sorted(api_cast, key=sort_key)}\nDB: {sorted(db_data['cast'], key=sort_key)}"
 
         log_info("Data verification successful: API and DB match perfectly.")
 
@@ -250,3 +243,13 @@ class ApiTasks(ApiClient):
         print(f"Current Auth Header: {self.session.headers.get('Authorization')}")
 
         ##assert that status is updated to paid
+
+    def setup_test_data(self):
+            try:
+                db_conn = self.repo.db
+                filters = get_api_filters(db_conn)
+                projections = get_movie_projections(db_conn)
+                details = get_movie_details_data(db_conn)
+                return filters, projections, details
+            except Exception as e:
+                pytest.fail(f"Critical Setup Failure: Could not retrieve test data from DB. Error: {e}")

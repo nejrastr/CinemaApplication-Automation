@@ -3,6 +3,8 @@ import re
 import time
 import allure
 from playwright.sync_api import expect
+from data.data import get_currently_showing_filters, get_upcoming_movies_filters, get_movie_projections, \
+    get_movie_details_data
 from pages.reservation_page import ReservationPage
 from utils.email_util import EmailHelper
 from pages.navbar import Navbar
@@ -17,9 +19,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class Tasks:
+class Tasks():
 
-    def __init__(self, page):
+    def __init__(self, page, ):
         self.page = page
         self.sign_in_page = SignInPage(page)
         self.registration_page = RegistrationPage(page)
@@ -173,15 +175,21 @@ class Tasks:
         expect(self.page).to_have_url(re.compile(f".*date={date_val}.*"))
 
     @allure.step("Verify Movie Details Page Content")
-    def verify_movie_details(self, title, **movie_data):
+    def verify_movie_details(self, movie_data, current_showing):
+        title = movie_data["title"]
         self.navbar.click_currently_showing_link()
+        self.current_showing_page.select_date_chip(
+            current_showing["month"],
+            current_showing["day"],
+            current_showing["weekday"]
+        )
         self.current_showing_page.click_movie_card(title)
-        full_expected_data = {"title": title, **movie_data}
-        self.movie_details_page.verify_all_content(full_expected_data)
+        self.movie_details_page.verify_all_content({"title": title, **movie_data})
 
-    def verify_movie_ticket_reservation(self, city_name, cinema_name,movie_title, projection_time):
+    def verify_movie_ticket_reservation(self, city_name, cinema_name,movie_title, projection_time, day, month, weekday ):
         self.movie_details_page.select_city(city_name)
         self.movie_details_page.select_cinema(cinema_name)
+        self.current_showing_page.select_date_chip(month, day, weekday)
         self.movie_details_page.click_first_available_time()
         self.movie_details_page.click_reservation_button()
         self.reservation_page.verify_session_timer()
@@ -207,3 +215,11 @@ class Tasks:
         self.reservation_page.complete_reservation()
         ##go to payment part
         ##add payment part with stripe
+
+    def setup_ui_test_data(self, db):
+            return {
+                "currently_showing": get_currently_showing_filters(db),
+                "upcoming_movies": get_upcoming_movies_filters(db),
+                "movie_projections": get_movie_projections(db),
+                "movie_details": get_movie_details_data(db),
+            }
