@@ -23,7 +23,13 @@ class TestSmokeUi:
             movie_data=ui_filter_test_data["movie_details"],
             current_showing=ui_filter_test_data["currently_showing"]
         )
-        tasks.verify_movie_ticket_reservation(ui_filter_test_data["movie_details"]["city"], ui_filter_test_data["movie_details"]["cinema"], ui_filter_test_data["movie_details"]["title"],ui_filter_test_data["movie_details"]["projection_time"], ui_filter_test_data["currently_showing"]["day"], ui_filter_test_data["currently_showing"]["month"], ui_filter_test_data["currently_showing"]["weekday"])
+        tasks.verify_movie_ticket_reservation(ui_filter_test_data["movie_details"]["city"],
+                                              ui_filter_test_data["movie_details"]["cinema"],
+                                              ui_filter_test_data["movie_details"]["title"],
+                                              ui_filter_test_data["movie_details"]["projection_time"],
+                                              ui_filter_test_data["currently_showing"]["day"],
+                                              ui_filter_test_data["currently_showing"]["month"],
+                                              ui_filter_test_data["currently_showing"]["weekday"])
         tasks.verify_search_and_filtering_upcoming_movies(**ui_filter_test_data["upcoming_movies"])
         tasks.complete_logout()
 

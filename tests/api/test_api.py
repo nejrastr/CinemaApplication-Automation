@@ -1,9 +1,8 @@
 from typing import Any
-
 import allure
 from data.test_data import TEST_USER
 from tasks.api_tasks import ApiTasks
-from data.data import get_api_filters, get_movie_projections, get_movie_details_data
+
 
 @allure.epic("Cinema Application")
 @allure.feature("Api Smoke Suite")
@@ -42,9 +41,7 @@ class TestApi(ApiTasks):
     @allure.severity(allure.severity_level.CRITICAL)
     def test_movie_payment_api_flow(self):
         with allure.step("Step 1: Test data setup"):
-            api_filters_data = get_api_filters(self.db)
-            api_movie_projections_data = get_movie_projections(self.db)
-            api_test_data = get_movie_details_data(self.db)
+            api_filters_data, api_movie_projections_data, api_test_data = self.setup_test_data()
         with allure.step("Step 2: Retrieve currently showing movies"):
             self.get_currently_showing_movies(**api_filters_data["current"])
         with allure.step("Step 2: Explore movie metadata (Cities, Venues, Genres)"):
@@ -65,8 +62,6 @@ class TestApi(ApiTasks):
             self.get_user_profile(expected_email=email_used)
         with allure.step("Step 9: Validate movie details information"):
             self.get_movie_details(api_test_data)
-        # with allure.step("Step 10: Reserve movie ticket"):
-        #     self.get_movie_ticket_reservation(api_test_data)
         with allure.step("Step 10: Buy movie ticket"):
             self.buy_movie_tickets(api_test_data)
         with allure.step("Step 11: Logout and terminate session"):

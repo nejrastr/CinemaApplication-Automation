@@ -128,15 +128,15 @@ def get_movie_details_data(db_connection):
 
     movie_id = movie_row["id"]
     with db_connection.cursor() as cur:
-        # Genres
+
         cur.execute("SELECT g.name FROM genres g JOIN movie_genres mg ON g.id = mg.genre_id WHERE mg.movie_id = %s ORDER BY g.name", (movie_id,))
         genres = [r["name"] for r in cur.fetchall()]
 
-        # Writers
+
         cur.execute("SELECT first_name, last_name FROM movie_writers WHERE movie_id = %s", (movie_id,))
         writers = [f"{r['first_name']} {r['last_name']}" for r in cur.fetchall()]
 
-        # Cast
+
         cur.execute("SELECT first_name, last_name, character_full_name FROM movie_cast WHERE movie_id = %s", (movie_id,))
         cast_list = [{"name": f"{r['first_name']} {r['last_name']}", "character": r["character_full_name"]} for r in cur.fetchall()]
 
@@ -163,8 +163,6 @@ def get_api_filters(db_connection):
 
     next_proj = get_next_available_projection(db_connection)
     client = DBClient(db_connection)
-
-    # Get specific IDs for the filters
     filters_row = client.fetch_one("""
         SELECT
             c.id AS city_id, v.id AS venue_id, g.id AS genre_id,

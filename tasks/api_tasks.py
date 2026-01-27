@@ -13,12 +13,16 @@ from data.data import get_api_filters, get_movie_projections, get_movie_details_
 
 class ApiTasks(ApiClient):
 
-    @pytest.fixture(autouse=True)
-    def setup_api_tasks(self, db_connection):
-        log_info("Initializing ApiTasks and DB Repository")
+    def setup_method(self, method):
+        log_info("Initializing ApiTasks")
+        self.session = None
         self.init_client()
-        self.repo = MovieRepository(db_connection)
         self.app_password = os.getenv("GMAIL_APP_PASSWORD")
+
+    @pytest.fixture(autouse=True)
+    def inject_db(self, db_connection):
+        self.repo = MovieRepository(db_connection)
+
 
     def _attach_details(self, name, data, attachment_type=allure.attachment_type.JSON):
         log_info(f"Attaching details: {name}")
@@ -79,7 +83,11 @@ class ApiTasks(ApiClient):
         assert "access_token" in res.cookies or "access_token" in res.json()
         token = res.cookies.get("access_token")
         if token:
-            self.session.headers.update({"Authorization": f"Bearer {token}"})
+            self.session.headers = {
+                **self.session.headers,
+                "Authorization": f"Bearer {token}"
+            }
+
             log_info("Login successful and Bearer token applied to session.")
         else:
             log_info("Login successful, but no token found in JSON body.")
@@ -90,6 +98,8 @@ class ApiTasks(ApiClient):
     def logout(self):
         log_info("Logging out current user")
         self.post("auth/logout")
+        self.session.headers.pop("Authorization", None)
+        self.session.cookies.clear()
 
     @allure.step("User profile")
     def get_user_profile(self, expected_email):
@@ -227,22 +237,28 @@ class ApiTasks(ApiClient):
         booking_id = booking_data.get("bookingId")
         status = self.repo.get_reservation_status(booking_id)
         assert status['status'] == "locked"
+        log_info("Reservation status: locked")
         print(f"Current Auth Header: {self.session.headers.get('Authorization')}")
         reserved_ticket_response = self.post(f"booking/reserve/{booking_id}")
         assert reserved_ticket_response.status_code == 200
         time.sleep(2)
         status_2 = self.repo.get_reservation_status(booking_id)
         assert status_2['status'] == "reserved"
+        log_info("Reservation status: reserved")
 
+    @allure.step("Buy movie tickets with Stripe")
     def buy_movie_tickets(self, api_test_data):
         booking_response = self.get_booking_session(api_test_data["movie_projection_id"])
         booking_data = booking_response.json()
         booking_id = booking_data.get("bookingId")
         status = self.repo.get_reservation_status(booking_id)
         assert status['status'] == "locked"
-        print(f"Current Auth Header: {self.session.headers.get('Authorization')}")
-
-        ##assert that status is updated to paid
+        log_info(f"Initiating payment for booking: {booking_id}")
+        self.post(f"booking/pay/{booking_id}")
+        time.sleep(3)
+        final_status = self.repo.get_reservation_status(booking_id)
+        log_info(f"Final DB Status: {final_status['status']}")
+        assert final_status['status'] == "paid", f"Expected 'paid' but got {final_status['status']}"
 
     def setup_test_data(self):
             try:
@@ -250,6 +266,7 @@ class ApiTasks(ApiClient):
                 filters = get_api_filters(db_conn)
                 projections = get_movie_projections(db_conn)
                 details = get_movie_details_data(db_conn)
+                log_info("setup test data")
                 return filters, projections, details
             except Exception as e:
                 pytest.fail(f"Critical Setup Failure: Could not retrieve test data from DB. Error: {e}")
