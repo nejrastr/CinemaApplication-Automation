@@ -13,8 +13,11 @@ from pages.upcoming_movies_page import UpcomingMoviesPage
 from pages.movie_details_page import MovieDetailsPage
 from pages.currently_showing_page import CurrentlyShowingMoviesPage
 from pages.registration_page import RegistrationPage
+from pages.payment_page import PaymentPage
+from pages.stripe_payment_page import StripePaymentPage
 from utils.logger import log_info
 from dotenv import load_dotenv
+from data.test_data import PAYMENT_DETAILS
 
 load_dotenv()
 
@@ -29,6 +32,8 @@ class Tasks():
         self.current_showing_page = CurrentlyShowingMoviesPage(page)
         self.movie_details_page = MovieDetailsPage(page)
         self.reservation_page = ReservationPage(page)
+        self.payment_page = PaymentPage(page)
+        self.stripe_payment_page = StripePaymentPage(page)
         self.navbar = Navbar(page)
         self.base_url = os.getenv("BASE_URL")
         self.app_password = os.getenv("GMAIL_APP_PASSWORD")
@@ -199,22 +204,27 @@ class Tasks():
         self.reservation_page.verify_selection(selected_seat)
         self.reservation_page.verify_price("7")
         self.reservation_page.complete_reservation()
+        log_info("Reservation Page Verification - completed")
         self.reservation_page.verify_reservation_success()
 
-    def verify_movie_ticket_payment(self, city_name, cinema_name,movie_title, projection_time):
+    def verify_movie_ticket_payment(self, city_name, cinema_name,movie_title, projection_time, day, month, weekday):
         self.movie_details_page.select_city(city_name)
         self.movie_details_page.select_cinema(cinema_name)
+        self.current_showing_page.select_date_chip(month, day, weekday)
         self.movie_details_page.click_first_available_time()
-        self.movie_details_page.click_reservation_button()
-        self.reservation_page.verify_session_timer()
-        self.reservation_page.verify_booking_details(movie_title, cinema_name, projection_time)
-        self.reservation_page.verify_button_state(is_enabled=False)
-        selected_seat = self.reservation_page.select_first_available_seat()
-        self.reservation_page.verify_selection(selected_seat)
-        self.reservation_page.verify_price("7")
-        self.reservation_page.complete_reservation()
-        ##go to payment part
-        ##add payment part with stripe
+        self.movie_details_page.click_buy_ticket_button()
+        self.payment_page.verify_session_timer()
+        self.payment_page.verify_booking_details(movie_title, cinema_name, projection_time)
+        self.payment_page.verify_button_state(is_enabled=False)
+        selected_seat = self.payment_page.select_first_available_seat()
+        log_info("Selecting seat")
+        self.payment_page.verify_selection(selected_seat)
+        self.payment_page.verify_price("7")
+        self.payment_page.complete_payment()
+        self.stripe_payment_page.fill_payment_details(PAYMENT_DETAILS)
+        log_info("Payment Details Page Verification - fill stripe form")
+        self.stripe_payment_page.click_payment_submit_button()
+
 
     def setup_ui_test_data(self, db):
             return {

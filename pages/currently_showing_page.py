@@ -1,3 +1,5 @@
+from pygments.lexers.robotframework import normalize
+
 from pages.base_page import BasePage
 from playwright.sync_api import Page
 import re
@@ -12,8 +14,11 @@ class CurrentlyShowingMoviesPage(BasePage):
         self.projections_dropdown = page.locator("//div[@data-testid='select-trigger-all-projections']")
         self.cards = page.locator('div.grid.grid-cols-1.md\\:grid-cols-12')
 
-    def click_movie_card(self, movie_name):
-        card = self.cards.filter(has=self.page.get_by_role("heading", name=movie_name))
+    def click_movie_card(self, movie_name: str):
+        normalized = movie_name.lower().replace(" ", "-")
+
+        card = self.page.locator(f"//div[@data-testid='movie-card-{normalized}']")
+        card.wait_for(state="visible")
         self.click(card)
 
     def fill_search_bar(self, search_term):

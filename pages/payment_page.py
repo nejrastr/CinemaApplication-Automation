@@ -42,7 +42,7 @@ class PaymentPage(BasePage):
         else:
             expect(self.confirm_button).to_be_disabled()
 
-    def complete_reservation(self):
+    def complete_payment(self):
         self.click(self.confirm_button)
 
     def select_first_available_seat(self) -> str:

@@ -18,6 +18,10 @@ class MovieDetailsPage(BasePage):
             "select-trigger-choose-cinema")
         self.projection_time_buttons = self.page.locator("button[data-testid^='projection-time-']")
         self.reservation_button = page.get_by_test_id("movie-details-reserve-ticket-button")
+        self.payment_button = page.get_by_test_id("movie-details-buy-ticket-button")
+
+    def click_buy_ticket_button(self):
+        self.click(self.payment_button)
 
     def verify_all_content(self, data: dict):
 
