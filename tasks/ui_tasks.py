@@ -166,6 +166,7 @@ class Tasks():
             log_info(f"Filtering by title: {search_term} and location: {city}")
             self.current_showing_page.fill_search_bar(search_term)
             self.current_showing_page.select_city(city, self.page)
+            time.sleep(2)
             self.current_showing_page.select_cinema(cinema, self.page)
 
         with allure.step("Apply genre and projection time"):
