@@ -4,16 +4,15 @@ from playwright.sync_api import Page
 class UpcomingMoviesPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.search_bar = page.get_by_role("textbox", name="Search Movies")
-        self.cities_dropdown = page.locator("div.border:has(span:text('All cities'))")
-        self.cinemas_dropdown = page.locator(
-            "div.border:has(span:text('All cinemas'))")
-        self.genres_dropdown = page.locator("div.border:has(span:has-text('All genres'))")
-        self.date_range_dropdown = page.locator("div.border:has(span:text('Date Range'))")
-        self.date_picker_apply_button = page.get_by_role("button", name="Apply")
+        self.search_bar = page.get_by_test_id("search-input-field")
+        self.cities_dropdown = page.locator("//div[@data-testid='select-trigger-all-cities']")
+        self.cinemas_dropdown = page.locator("//div[@data-testid='select-trigger-all-cinemas']")
+        self.genres_dropdown = page.locator("//div[@data-testid='select-trigger-all-genres']")
+        self.date_range_dropdown = page.locator("//div[@data-testid='date-range-picker-display']")
+        self.date_picker_apply_button = page.locator("//button[@data-testid='date-range-picker-apply-button']")
         self.date_picker_next = page.locator("button[aria-label='Next Month']")
         self.date_picker_previous = page.locator("button[aria-label='Previous Month']")
-        self.cards = page.locator("div.grid > div.bg-neutral-0.border.rounded-2xl.shadow-card")
+        self.cards = page.locator("//div[@data-testid='upcoming-movies-grid']")
 
     def select_date(self, date_str):
         return self.page.locator(f"div[aria-label='Choose {date_str}']")

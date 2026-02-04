@@ -1,17 +1,23 @@
 from pages.base_page import BasePage
-from playwright.sync_api import Page
-import re
+from playwright.sync_api import Page, expect
 
 class CurrentlyShowingMoviesPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.search_bar = page.get_by_role("textbox", name="Search Movies")
-        self.cities_dropdown = page.locator("div.border:has(span:text('All cities'))")
-        self.cinemas_dropdown = page.locator(
-            "div.border:has(span:text('All cinemas'))")
-        self.genres_dropdown = page.locator("div.border:has(span:has-text('All genres'))")
-        self.projections_dropdown = page.locator("div.border:has(span:has-text('All projections'))")
+        self.search_bar = page.locator("//input[@data-testid='search-input-field']")
+        self.cities_dropdown = page.locator("//div[@data-testid='select-trigger-all-cities']")
+        self.cinemas_dropdown = page.locator("//div[@data-testid='select-trigger-all-cinemas']")
+        self.genres_dropdown = page.locator("//div[@data-testid='select-trigger-all-genres']")
+        self.projections_dropdown = page.locator("//div[@data-testid='select-trigger-all-projections']")
         self.cards = page.locator('div.grid.grid-cols-1.md\\:grid-cols-12')
+        self.city_list = page.get_by_test_id("select-options-list-all-cities")
+
+    def click_movie_card(self, movie_name: str):
+        normalized = movie_name.lower().replace(" ", "-")
+
+        card = self.page.locator(f"//div[@data-testid='movie-card-{normalized}']")
+        card.wait_for(state="visible")
+        self.click(card)
 
     def fill_search_bar(self, search_term):
         self.fill(self.search_bar, search_term)
@@ -22,6 +28,7 @@ class CurrentlyShowingMoviesPage(BasePage):
 
     def select_city(self, city_name, page):
         self.click(self.cities_dropdown)
+        expect(self.city_list).to_be_visible(timeout=5000)
         self.click(page.locator(f"ul li:text('{city_name}')"))
 
     def select_cinema(self, cinema_name, page):
@@ -37,5 +44,8 @@ class CurrentlyShowingMoviesPage(BasePage):
         self.click(page.locator(f"ul li:text('{projection}')"))
 
     def select_date_chip(self, month, day, weekday):
-      date_button = self.page.locator("button").filter(has_text=re.compile(f"{month}\\s*{day}\\s*{weekday}", re.IGNORECASE))
-      date_button.click()
+        ui_day = day.lstrip('0')
+        date_button = self.page.locator("button").filter(has_text=month).filter(has_text=ui_day)
+        date_button.scroll_into_view_if_needed()
+        expect(date_button).to_be_visible(timeout=10000)
+        date_button.click()
