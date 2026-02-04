@@ -9,7 +9,6 @@ class ReservationPage(BasePage):
         self.booking_details_venue = page.get_by_test_id("booking-projection-venue")
         self.booking_details_time = page.get_by_test_id("booking-projection-date-time")
         self.session_initialized = page.get_by_test_id("booking-layout-session-timer")
-
         self.seats_container = page.get_by_test_id("seat-map-section")
         self.selected_seats_list = page.get_by_test_id("selected-seats-list")
         self.total_price = page.get_by_test_id("total-price-amount")

@@ -7,15 +7,10 @@ class StripePaymentPage(BasePage):
         self.payment_submit_button = page.get_by_test_id("payment-submit-button")
 
     def fill_stripe_input(self, input_name, value):
-        for iframe in self.page.locator("iframe").all():
-            frame = iframe.content_frame
-            if frame is None:
-                continue
-            input_field = frame.locator(f"input[name='{input_name}']")
-            if input_field.count() > 0:
-                input_field.fill(value)
-                return
-        raise RuntimeError(f"Stripe input '{input_name}' not found")
+        input_field = self.page.frame_locator("iframe[name^='__privateStripeFrame']") \
+            .first.locator(f"input[name='{input_name}']")
+        input_field.wait_for(state="visible", timeout=15000)
+        input_field.fill(value)
 
     def fill_payment_details(self, payment_details):
         self.fill_stripe_input("number", payment_details["card_number"])

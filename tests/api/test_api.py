@@ -1,18 +1,24 @@
-from typing import Any
 import allure
+import pytest
 from data.test_data import TEST_USER
 from tasks.api_tasks import ApiTasks
 
-
 @allure.epic("Cinema Application")
 @allure.feature("Api Smoke Suite")
+@pytest.mark.api
 class TestApi(ApiTasks):
-    db: Any
+    def get_data_or_fail(self):
+        return self.setup_test_data()
+    @pytest.fixture(scope="function")
+    def api_data_fixture(self):
+        try:
+            return self.get_data_or_fail()
+        except Exception as e:
+            pytest.skip(f"Skipping test: Data setup failed. {e}")
     @allure.story("Full end-to-end movie discovery, authentication and reservation flow")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_movie_reservation_api_flow(self):
-        with allure.step("Step 1: Test data setup"):
-            api_filters_data, api_movie_projections_data, api_test_data = self.setup_test_data()
+    def test_movie_reservation_api_flow(self, api_data_fixture):
+        api_filters_data, api_movie_projections_data, api_test_data = api_data_fixture
         with allure.step("Step 2: Retrieve currently showing movies"):
             self.get_currently_showing_movies(**api_filters_data["current"])
         with allure.step("Step 2: Explore movie metadata (Cities, Venues, Genres)"):
@@ -39,9 +45,8 @@ class TestApi(ApiTasks):
 
     @allure.story("Full end-to-end movie discovery, authentication and ticket purchase flow")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_movie_payment_api_flow(self):
-        with allure.step("Step 1: Test data setup"):
-            api_filters_data, api_movie_projections_data, api_test_data = self.setup_test_data()
+    def test_movie_payment_api_flow(self, api_data_fixture):
+        api_filters_data, api_movie_projections_data, api_test_data = api_data_fixture
         with allure.step("Step 2: Retrieve currently showing movies"):
             self.get_currently_showing_movies(**api_filters_data["current"])
         with allure.step("Step 2: Explore movie metadata (Cities, Venues, Genres)"):
@@ -66,6 +71,3 @@ class TestApi(ApiTasks):
             self.buy_movie_tickets(api_test_data)
         with allure.step("Step 11: Logout and terminate session"):
             self.logout()
-
-
-

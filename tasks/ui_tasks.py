@@ -5,6 +5,7 @@ import allure
 from playwright.sync_api import expect
 from data.data import get_currently_showing_filters, get_upcoming_movies_filters, get_movie_projections, \
     get_movie_details_data
+from database.repositories import MovieRepository
 from pages.reservation_page import ReservationPage
 from utils.email_util import EmailHelper
 from pages.navbar import Navbar
@@ -18,14 +19,14 @@ from pages.stripe_payment_page import StripePaymentPage
 from utils.logger import log_info
 from dotenv import load_dotenv
 from data.test_data import PAYMENT_DETAILS
-
 load_dotenv()
 
-
 class Tasks():
-
-    def __init__(self, page, ):
+    def __init__(self, page, db=None):
         self.page = page
+        self.db = db
+        if db:
+            self.repo = MovieRepository(db)
         self.sign_in_page = SignInPage(page)
         self.registration_page = RegistrationPage(page)
         self.upcoming_movies_page = UpcomingMoviesPage(page)
@@ -85,7 +86,6 @@ class Tasks():
         log_info("Logout successful - Sign In button visible")
 
     def add_ordinal_suffix(self, date_str):
-
         match = re.search(r"(\d{1,2}),", date_str)
         if not match:
             return date_str
@@ -166,7 +166,8 @@ class Tasks():
             log_info(f"Filtering by title: {search_term} and location: {city}")
             self.current_showing_page.fill_search_bar(search_term)
             self.current_showing_page.select_city(city, self.page)
-            time.sleep(2)
+            cinema_dropdown_item = self.page.locator("li[data-testid*='select-option']").first
+            expect(cinema_dropdown_item).to_be_visible(timeout=5000)
             self.current_showing_page.select_cinema(cinema, self.page)
 
         with allure.step("Apply genre and projection time"):
@@ -226,11 +227,10 @@ class Tasks():
         log_info("Payment Details Page Verification - fill stripe form")
         self.stripe_payment_page.click_payment_submit_button()
 
-
     def setup_ui_test_data(self, db):
-            return {
-                "currently_showing": get_currently_showing_filters(db),
-                "upcoming_movies": get_upcoming_movies_filters(db),
-                "movie_projections": get_movie_projections(db),
-                "movie_details": get_movie_details_data(db),
+        return {
+            "currently_showing": get_currently_showing_filters(db),
+             "upcoming_movies": get_upcoming_movies_filters(db),
+             "movie_projections": get_movie_projections(db),
+             "movie_details": get_movie_details_data(db),
             }

@@ -10,10 +10,8 @@ from utils.email_util import EmailHelper
 from utils.logger import log_info
 from data.data import get_api_filters, get_movie_projections, get_movie_details_data
 
-
 class ApiTasks(ApiClient):
-
-    def setup_method(self, method):
+    def setup_method(self):
         log_info("Initializing ApiTasks")
         self.session = None
         self.init_client()
@@ -22,7 +20,6 @@ class ApiTasks(ApiClient):
     @pytest.fixture(autouse=True)
     def inject_db(self, db_connection):
         self.repo = MovieRepository(db_connection)
-
 
     def _attach_details(self, name, data, attachment_type=allure.attachment_type.JSON):
         log_info(f"Attaching details: {name}")
@@ -182,7 +179,6 @@ class ApiTasks(ApiClient):
         log_info("Checking projection times against DB...")
         db_times = self.repo.get_projection_times(movie_id, projection_date)
 
-
         assert api_times == db_times
         log_info(f"Projections match for movie_id {movie_id}.")
         return res
@@ -225,7 +221,6 @@ class ApiTasks(ApiClient):
         assert api_data['projectionStartDate'] == db_data['projectionStartDate']
         assert api_data['projectionEndDate'] == db_data['projectionEndDate']
 
-
         assert sorted(api_writers) == sorted(db_data['writers']), \
             f"Writers mismatch! API: {api_writers} vs DB: {db_data['writers']}"
 
@@ -261,12 +256,12 @@ class ApiTasks(ApiClient):
         assert final_status['status'] == "paid", f"Expected 'paid' but got {final_status['status']}"
 
     def setup_test_data(self):
-            try:
-                db_conn = self.repo.db
-                filters = get_api_filters(db_conn)
-                projections = get_movie_projections(db_conn)
-                details = get_movie_details_data(db_conn)
-                log_info("setup test data")
-                return filters, projections, details
-            except Exception as e:
-                pytest.fail(f"Critical Setup Failure: Could not retrieve test data from DB. Error: {e}")
+        try:
+            db_conn = self.repo.db
+            filters = get_api_filters(db_conn)
+            projections = get_movie_projections(db_conn)
+            details = get_movie_details_data(db_conn)
+            log_info("setup test data")
+            return filters, projections, details
+        except Exception as e:
+            pytest.fail(f"Critical Setup Failure: Could not retrieve test data from DB. Error: {e}")

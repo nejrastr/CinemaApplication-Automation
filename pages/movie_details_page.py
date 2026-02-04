@@ -1,7 +1,6 @@
 from playwright.sync_api import Page, expect
 from pages.base_page import BasePage
 
-
 class MovieDetailsPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
@@ -32,7 +31,6 @@ class MovieDetailsPage(BasePage):
         assert str(data['duration']) in meta_content, f"Duration {data['duration']} not found"
         raw_genres = self.genre_badges.all_text_contents()
         ui_genres = [g.strip() for g in raw_genres if not any(char.isdigit() for char in g)]
-
 
         assert sorted(ui_genres) == sorted(data['genres']), \
             f"Genre mismatch! UI: {ui_genres} vs DB: {data['genres']}"

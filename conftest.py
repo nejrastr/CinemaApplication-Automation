@@ -7,11 +7,9 @@ import allure
 def browser(request):
     browser_name = request.param
     with sync_playwright() as playwright:
-        browser = getattr(playwright, browser_name).launch(headless=True)
+        browser = getattr(playwright, browser_name).launch(headless=False)
         yield browser
         browser.close()
-
-
 @pytest.fixture(scope="function")
 def context(browser):
     context = browser.new_context()
@@ -46,8 +44,8 @@ def db_connection():
     yield conn
     conn.close()
 @pytest.fixture(autouse=True)
-def inject_db(request, db_connection):
-    if request.cls:
+def inject_fixtures(request, db_connection):
+    if request.cls is not None:
         request.cls.db = db_connection
 @pytest.fixture(autouse=True)
 def inject_page(request, page):
