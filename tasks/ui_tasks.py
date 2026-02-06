@@ -165,10 +165,15 @@ class Tasks():
         with allure.step("Apply search and location filters"):
             log_info(f"Filtering by title: {search_term} and location: {city}")
             self.current_showing_page.fill_search_bar(search_term)
+            self.page.wait_for_load_state("networkidle")
             self.current_showing_page.select_city(city, self.page)
-            cinema_dropdown_item = self.page.locator("li[data-testid*='select-option']").first
-            expect(cinema_dropdown_item).to_be_visible(timeout=5000)
-            self.current_showing_page.select_cinema(cinema, self.page)
+            city_display = self.page.locator("span[data-testid='select-display-value-all-cities']")
+            expect(city_display).to_have_text(city, timeout=7000)
+            if city:
+                log_info(f"City '{city}' confirmed. Now selecting cinema: {cinema}")
+                self.current_showing_page.select_cinema(cinema, self.page)
+                cinema_display = self.page.locator("span[data-testid='select-display-value-all-cinemas']")
+                expect(cinema_display).to_have_text(cinema, timeout=5000)
 
         with allure.step("Apply genre and projection time"):
             log_info(f"Filtering by genre: {genre} and time: {projection}")

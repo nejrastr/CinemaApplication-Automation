@@ -13,11 +13,10 @@ class CurrentlyShowingMoviesPage(BasePage):
         self.city_list = page.get_by_test_id("select-options-list-all-cities")
 
     def click_movie_card(self, movie_name: str):
-        normalized = movie_name.lower().replace(" ", "-")
-
-        card = self.page.locator(f"//div[@data-testid='movie-card-{normalized}']")
-        card.wait_for(state="visible")
-        self.click(card)
+        movie_slug = movie_name.lower().replace(":", "").replace(" ", "-")
+        movie_card = self.page.locator(f"div.grid:has(h1[data-testid='movie-card-title-{movie_slug}'])")
+        movie_card.wait_for(state="visible")
+        self.click(movie_card)
 
     def fill_search_bar(self, search_term):
         self.fill(self.search_bar, search_term)
@@ -28,12 +27,19 @@ class CurrentlyShowingMoviesPage(BasePage):
 
     def select_city(self, city_name, page):
         self.click(self.cities_dropdown)
+        self.page.wait_for_timeout(500)
         expect(self.city_list).to_be_visible(timeout=5000)
-        self.click(page.locator(f"ul li:text('{city_name}')"))
+        city_slug = city_name.strip().lower().replace(" ", "-")
+        target_option = page.locator(f"li[data-testid*='select-option-all-cities-{city_slug}']")
+        target_option.click()
+        expect(self.city_list).to_be_hidden(timeout=3000)
 
     def select_cinema(self, cinema_name, page):
         self.click(self.cinemas_dropdown)
-        self.click(page.locator(f"ul li:text('{cinema_name}')"))
+        self.page.wait_for_timeout(500)
+        cinema_slug = cinema_name.strip().lower().replace(" ", "-")
+        target_option = page.locator(f"li[data-testid*='select-option-all-cinemas-{cinema_slug}']")
+        target_option.click()
 
     def select_genre(self, genre, page):
         self.click(self.genres_dropdown)
