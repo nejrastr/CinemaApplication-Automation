@@ -30,11 +30,21 @@ class MovieRepository:
     def get_projection_times(self, movie_id, date):
         with self.db.cursor() as cursor:
             cursor.execute("""
-                SELECT projection_time 
-                FROM movie_projections 
-                WHERE movie_id = %s AND projection_date = %s
+            SELECT projection_time 
+            FROM movie_projections 
+            WHERE movie_id = %s 
+            AND projection_date = %s
+            AND (projection_date + projection_time) > NOW()
+            ORDER BY projection_time ASC
+                
             """, (movie_id, date))
             return {str(row['projection_time']) for row in cursor.fetchall()}
+
+    def get_movie_details(self):
+        with self.db.cursor() as cursor:
+            cursor.execute("""
+            
+            """)
 
     def get_filtered_movies(self, filters, is_upcoming=False):
 
@@ -75,3 +85,14 @@ class MovieRepository:
         with self.db.cursor() as cursor:
             cursor.execute(query, tuple(params))
             return cursor.fetchall()
+
+    def get_reservation_status(self, booking_id):
+
+        query = """
+        SELECT status
+        FROM bookings
+        WHERE id = %s::uuid
+        """
+        with self.db.cursor() as cursor:
+            cursor.execute(query, (booking_id,))
+            return cursor.fetchone()

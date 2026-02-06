@@ -6,12 +6,12 @@ from pages.base_page import BasePage
 class Navbar(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.logo = page.locator("//a[.//h1[normalize-space()='Cinebh.']]")
-        self.currently_showing_link = page.locator("//a[normalize-space()='Currently Showing']")
-        self.upcoming_movies_link = page.locator("//a[normalize-space()='Upcoming Movies']")
-        self.sign_in_button = page.locator("//button[text()='Sign In']")
-        self.user_dropdown = page.locator("button:has(svg[data-icon='angle-down'])")
-        self.logout_button = page.locator("//ul/li[normalize-space()='Logout']")
+        self.logo = page.locator("//a[@data-testid='headre-logo-home-link']")
+        self.currently_showing_link = page.locator("//a[@data-testid='header-nav-link-currently-showing']")
+        self.upcoming_movies_link = page.locator("//a[@data-testid='header-nav-link-upcoming-movies']")
+        self.sign_in_button = page.locator("//button[@data-testid='sign-in-button']")
+        self.user_dropdown = page.locator("//span[@data-testid='header-user-name-display']")
+        self.logout_button = page.locator("//ul/li[@data-testid='header-user-menu-item-logout']")
 
     def click_sign_in(self):
         self.sign_in_button.click()

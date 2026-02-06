@@ -6,18 +6,16 @@ from pages.base_page import BasePage
 class RegistrationPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.email_input = page.locator("//input[@name='email']")
-        self.password_input = page.locator("//input[@name='password']")
-        self.confirm_password_input = page.locator("//input[@name='confirmPassword']")
-        self.sign_up_button = page.locator("//button[normalize-space()='Sign Up']")
+        self.email_input = page.locator("//input[@data-testid='input-field-control-email']")
+        self.password_input = page.locator("//input[@data-testid='input-field-control-password']")
+        self.confirm_password_input = page.locator("//input[@data-testid='input-field-control-confirmPassword']")
+        self.sign_up_button = page.locator("//button[@data-testid='signup-submit-btn']")
         self.code_inputs = page.locator("input[autocomplete='one-time-code']")
-        self.continue_button = page.get_by_role("button", name="Continue")
-
+        self.continue_button = page.locator(
+            "//button[@data-testid='verification-submit-btn']")
         self.back_button = page.locator(
-            "div.fixed.top-16.right-0 button:has(svg[data-icon='arrow-left'])"
+            "button//[@data-testid='drawer-close-button']"
         )
-
-
     def click_back(self):
         self.back_button.wait_for(state="visible", timeout=5000)
         self.click(self.back_button)
